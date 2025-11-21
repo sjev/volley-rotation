@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
@@ -19,7 +20,7 @@
             height: 100vh;
             overflow: hidden;
         }
-        
+
         .controls {
             background: white;
             padding: 15px;
@@ -30,7 +31,7 @@
             border-bottom: 2px solid #ddd;
             flex-shrink: 0;
         }
-        
+
         button {
             padding: 15px 25px;
             background: #3498db;
@@ -44,11 +45,11 @@
             min-height: 60px;
             touch-action: manipulation;
         }
-        
+
         button:hover {
             background: #2980b9;
         }
-        
+
         .court-container {
             flex: 1;
             display: flex;
@@ -58,7 +59,7 @@
             padding: 10px;
             min-height: 0;
         }
-        
+
         .court {
             position: relative;
             width: 100%;
@@ -70,13 +71,13 @@
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(2, 1fr);
         }
-        
+
         @media (max-width: 768px) {
             .court-container {
                 padding: 5px;
             }
         }
-        
+
         .zone {
             border: 1px solid rgba(0, 0, 0, 0.2);
             position: relative;
@@ -84,7 +85,7 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .zone-label {
             position: absolute;
             top: 5px;
@@ -94,7 +95,7 @@
             font-weight: bold;
             pointer-events: none;
         }
-        
+
         .player-chip {
             position: absolute;
             width: clamp(45px, 8vw, 60px);
@@ -113,31 +114,39 @@
             font-size: clamp(14px, 3vw, 18px);
             touch-action: none;
         }
-        
+
         .player-chip.dragging {
             transform: scale(1.1);
             z-index: 100;
             opacity: 0.9;
             transition: transform 0.2s;
         }
-        
+
         .player-chip.fault {
             animation: glow 1s ease-in-out infinite;
         }
-        
+
         @keyframes glow {
-            0%, 100% { box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.5); }
-            50% { box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.8); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.8);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="controls">
         <button onclick="rotate('ccw')" title="Roteer linksom">←</button>
         <button onclick="rotate('cw')" title="Roteer rechtsom">→</button>
         <button onclick="resetPositions()" title="Herstel posities">↺</button>
     </div>
-    
+
     <div class="court-container">
         <div class="court" id="court">
             <div class="zone" data-zone="4">
@@ -160,7 +169,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         // Player data with colors and positions
         const players = [
@@ -171,20 +180,20 @@
             { id: 'PL2', label: 'PL2', color: '#27ae60', zone: 5 },  // Passer-loper 2 (Outside Hitter 2) - green
             { id: 'M2', label: 'M2', color: '#e74c3c', zone: 6 }     // Middenblokeerder 2 (Middle Blocker 2) - red
         ];
-        
+
         let draggedPlayer = null;
         let playerPositions = {};
-        
+
         // Initialize
         function init() {
             createPlayerChips();
             snapToZones();
         }
-        
+
         // Create player chips on court
         function createPlayerChips() {
             const court = document.getElementById('court');
-            
+
             players.forEach(player => {
                 const chip = document.createElement('div');
                 chip.className = 'player-chip';
@@ -192,17 +201,17 @@
                 chip.style.backgroundColor = player.color;
                 chip.textContent = player.label;
                 chip.draggable = true;
-                
+
                 chip.addEventListener('dragstart', handleDragStart);
                 chip.addEventListener('dragend', handleDragEnd);
-                
+
                 // Touch support
                 chip.addEventListener('touchstart', handleTouchStart, { passive: false });
                 chip.addEventListener('touchmove', handleTouchMove, { passive: false });
                 chip.addEventListener('touchend', handleTouchEnd, { passive: false });
-                
+
                 court.appendChild(chip);
-                
+
                 // Store initial position
                 playerPositions[player.id] = {
                     zone: player.zone,
@@ -210,105 +219,105 @@
                     y: 0
                 };
             });
-            
+
             // Setup court for drop
             court.addEventListener('dragover', handleDragOver);
             court.addEventListener('drop', handleDrop);
         }
-        
+
         // Drag and drop handlers
         function handleDragStart(e) {
             draggedPlayer = e.target;
             draggedPlayer.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
         }
-        
+
         function handleDragEnd(e) {
             e.target.classList.remove('dragging');
             draggedPlayer = null;
         }
-        
+
         function handleDragOver(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
         }
-        
+
         function handleDrop(e) {
             e.preventDefault();
             if (!draggedPlayer) return;
-            
+
             const court = document.getElementById('court');
             const rect = court.getBoundingClientRect();
             const chipSize = draggedPlayer.offsetWidth;
             const x = e.clientX - rect.left - (chipSize / 2);
             const y = e.clientY - rect.top - (chipSize / 2);
-            
+
             // Constrain to court bounds
             const finalX = Math.max(0, Math.min(x, rect.width - chipSize));
             const finalY = Math.max(0, Math.min(y, rect.height - chipSize));
-            
+
             draggedPlayer.style.left = finalX + 'px';
             draggedPlayer.style.top = finalY + 'px';
-            
+
             // Update position record
             const playerId = draggedPlayer.id.replace('chip-', '');
             playerPositions[playerId].x = finalX;
             playerPositions[playerId].y = finalY;
-            
+
             checkRotationFaults();
         }
-        
+
         // Touch handlers for mobile
         let touchPlayer = null;
         let touchOffsetX = 0;
         let touchOffsetY = 0;
-        
+
         function handleTouchStart(e) {
             e.preventDefault();
             touchPlayer = e.target;
             touchPlayer.classList.add('dragging');
-            
+
             const touch = e.touches[0];
             const rect = touchPlayer.getBoundingClientRect();
             touchOffsetX = touch.clientX - rect.left;
             touchOffsetY = touch.clientY - rect.top;
         }
-        
+
         function handleTouchMove(e) {
             e.preventDefault();
             if (!touchPlayer) return;
-            
+
             const touch = e.touches[0];
             const court = document.getElementById('court');
             const courtRect = court.getBoundingClientRect();
             const chipSize = touchPlayer.offsetWidth;
-            
+
             const x = touch.clientX - courtRect.left - touchOffsetX;
             const y = touch.clientY - courtRect.top - touchOffsetY;
-            
+
             // Constrain to court bounds
             const finalX = Math.max(0, Math.min(x, courtRect.width - chipSize));
             const finalY = Math.max(0, Math.min(y, courtRect.height - chipSize));
-            
+
             touchPlayer.style.left = finalX + 'px';
             touchPlayer.style.top = finalY + 'px';
         }
-        
+
         function handleTouchEnd(e) {
             e.preventDefault();
             if (!touchPlayer) return;
-            
+
             touchPlayer.classList.remove('dragging');
-            
+
             // Update position record
             const playerId = touchPlayer.id.replace('chip-', '');
             playerPositions[playerId].x = parseFloat(touchPlayer.style.left);
             playerPositions[playerId].y = parseFloat(touchPlayer.style.top);
-            
+
             touchPlayer = null;
             checkRotationFaults();
         }
-        
+
         // Rotation functions
         function rotate(direction) {
             players.forEach(player => {
@@ -320,46 +329,46 @@
             });
             snapToZones();
         }
-        
+
         // Snap players to their zones
         function snapToZones() {
             const zones = document.querySelectorAll('.zone');
-            
+
             players.forEach(player => {
                 const chip = document.getElementById(`chip-${player.id}`);
                 const targetZone = document.querySelector(`[data-zone="${player.zone}"]`);
-                
+
                 if (targetZone && chip) {
                     const zoneRect = targetZone.getBoundingClientRect();
                     const courtRect = document.getElementById('court').getBoundingClientRect();
                     const chipSize = chip.offsetWidth;
-                    
+
                     const x = (zoneRect.left - courtRect.left) + (zoneRect.width / 2) - (chipSize / 2);
                     const y = (zoneRect.top - courtRect.top) + (zoneRect.height / 2) - (chipSize / 2);
-                    
+
                     chip.style.left = x + 'px';
                     chip.style.top = y + 'px';
-                    
+
                     playerPositions[player.id].x = x;
                     playerPositions[player.id].y = y;
                 }
             });
-            
+
             checkRotationFaults();
         }
-        
+
         // Reset to initial positions
         function resetPositions() {
             snapToZones();
         }
-        
+
         // Check for rotation faults
         function checkRotationFaults() {
             // Clear previous fault highlights
             document.querySelectorAll('.player-chip').forEach(chip => {
                 chip.classList.remove('fault');
             });
-            
+
             // Get player positions for fault checking
             const positions = {};
             players.forEach(player => {
@@ -370,49 +379,49 @@
                     id: player.id
                 };
             });
-            
+
             // Check front row (4-3-2) alignment
             if (positions[4] && positions[3] && positions[4].x > positions[3].x) {
                 document.getElementById(`chip-${positions[4].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
             }
-            
+
             if (positions[3] && positions[2] && positions[3].x > positions[2].x) {
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[2].id}`).classList.add('fault');
             }
-            
+
             // Check back row (5-6-1) alignment
             if (positions[5] && positions[6] && positions[5].x > positions[6].x) {
                 document.getElementById(`chip-${positions[5].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
             }
-            
+
             if (positions[6] && positions[1] && positions[6].x > positions[1].x) {
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[1].id}`).classList.add('fault');
             }
-            
+
             // Check front-back alignment
             if (positions[4] && positions[5] && positions[4].y > positions[5].y) {
                 document.getElementById(`chip-${positions[4].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[5].id}`).classList.add('fault');
             }
-            
+
             if (positions[3] && positions[6] && positions[3].y > positions[6].y) {
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
             }
-            
+
             if (positions[2] && positions[1] && positions[2].y > positions[1].y) {
                 document.getElementById(`chip-${positions[2].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[1].id}`).classList.add('fault');
             }
         }
-        
+
         // Initialize on load
         window.addEventListener('load', init);
-        
+
         // Re-snap on window resize to maintain proper positions
         let resizeTimeout;
         window.addEventListener('resize', () => {
@@ -421,4 +430,5 @@
         });
     </script>
 </body>
+
 </html>
