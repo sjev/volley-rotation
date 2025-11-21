@@ -24,22 +24,25 @@
             background: white;
             padding: 15px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
             justify-content: center;
             border-bottom: 2px solid #ddd;
+            flex-shrink: 0;
         }
         
         button {
-            padding: 10px 20px;
+            padding: 15px 25px;
             background: #3498db;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 24px;
             transition: background 0.3s;
-            min-width: 50px;
+            min-width: 60px;
+            min-height: 60px;
+            touch-action: manipulation;
         }
         
         button:hover {
@@ -52,18 +55,26 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 10px;
+            min-height: 0;
         }
         
         .court {
             position: relative;
-            width: 600px;
-            height: 400px;
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 3 / 2;
             background: #f4e8d0;
             border: 3px solid #333;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(2, 1fr);
+        }
+        
+        @media (max-width: 768px) {
+            .court-container {
+                padding: 5px;
+            }
         }
         
         .zone {
@@ -78,33 +89,36 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            font-size: 18px;
+            font-size: clamp(14px, 3vw, 18px);
             color: rgba(0, 0, 0, 0.3);
             font-weight: bold;
+            pointer-events: none;
         }
         
         .player-chip {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: clamp(45px, 8vw, 60px);
+            height: clamp(45px, 8vw, 60px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: move;
             user-select: none;
-            transition: transform 0.2s;
+            transition: left 0.5s ease-in-out, top 0.5s ease-in-out, transform 0.2s;
             z-index: 10;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             font-weight: bold;
             color: white;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 18px);
+            touch-action: none;
         }
         
         .player-chip.dragging {
             transform: scale(1.1);
             z-index: 100;
             opacity: 0.9;
+            transition: transform 0.2s;
         }
         
         .player-chip.fault {
@@ -182,6 +196,11 @@
                 chip.addEventListener('dragstart', handleDragStart);
                 chip.addEventListener('dragend', handleDragEnd);
                 
+                // Touch support
+                chip.addEventListener('touchstart', handleTouchStart, { passive: false });
+                chip.addEventListener('touchmove', handleTouchMove, { passive: false });
+                chip.addEventListener('touchend', handleTouchEnd, { passive: false });
+                
                 court.appendChild(chip);
                 
                 // Store initial position
@@ -220,12 +239,13 @@
             
             const court = document.getElementById('court');
             const rect = court.getBoundingClientRect();
-            const x = e.clientX - rect.left - 25; // Center the chip
-            const y = e.clientY - rect.top - 25;
+            const chipSize = draggedPlayer.offsetWidth;
+            const x = e.clientX - rect.left - (chipSize / 2);
+            const y = e.clientY - rect.top - (chipSize / 2);
             
             // Constrain to court bounds
-            const finalX = Math.max(0, Math.min(x, rect.width - 50));
-            const finalY = Math.max(0, Math.min(y, rect.height - 50));
+            const finalX = Math.max(0, Math.min(x, rect.width - chipSize));
+            const finalY = Math.max(0, Math.min(y, rect.height - chipSize));
             
             draggedPlayer.style.left = finalX + 'px';
             draggedPlayer.style.top = finalY + 'px';
@@ -235,6 +255,57 @@
             playerPositions[playerId].x = finalX;
             playerPositions[playerId].y = finalY;
             
+            checkRotationFaults();
+        }
+        
+        // Touch handlers for mobile
+        let touchPlayer = null;
+        let touchOffsetX = 0;
+        let touchOffsetY = 0;
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            touchPlayer = e.target;
+            touchPlayer.classList.add('dragging');
+            
+            const touch = e.touches[0];
+            const rect = touchPlayer.getBoundingClientRect();
+            touchOffsetX = touch.clientX - rect.left;
+            touchOffsetY = touch.clientY - rect.top;
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (!touchPlayer) return;
+            
+            const touch = e.touches[0];
+            const court = document.getElementById('court');
+            const courtRect = court.getBoundingClientRect();
+            const chipSize = touchPlayer.offsetWidth;
+            
+            const x = touch.clientX - courtRect.left - touchOffsetX;
+            const y = touch.clientY - courtRect.top - touchOffsetY;
+            
+            // Constrain to court bounds
+            const finalX = Math.max(0, Math.min(x, courtRect.width - chipSize));
+            const finalY = Math.max(0, Math.min(y, courtRect.height - chipSize));
+            
+            touchPlayer.style.left = finalX + 'px';
+            touchPlayer.style.top = finalY + 'px';
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            if (!touchPlayer) return;
+            
+            touchPlayer.classList.remove('dragging');
+            
+            // Update position record
+            const playerId = touchPlayer.id.replace('chip-', '');
+            playerPositions[playerId].x = parseFloat(touchPlayer.style.left);
+            playerPositions[playerId].y = parseFloat(touchPlayer.style.top);
+            
+            touchPlayer = null;
             checkRotationFaults();
         }
         
@@ -261,9 +332,10 @@
                 if (targetZone && chip) {
                     const zoneRect = targetZone.getBoundingClientRect();
                     const courtRect = document.getElementById('court').getBoundingClientRect();
+                    const chipSize = chip.offsetWidth;
                     
-                    const x = (zoneRect.left - courtRect.left) + (zoneRect.width / 2) - 25;
-                    const y = (zoneRect.top - courtRect.top) + (zoneRect.height / 2) - 25;
+                    const x = (zoneRect.left - courtRect.left) + (zoneRect.width / 2) - (chipSize / 2);
+                    const y = (zoneRect.top - courtRect.top) + (zoneRect.height / 2) - (chipSize / 2);
                     
                     chip.style.left = x + 'px';
                     chip.style.top = y + 'px';
@@ -340,6 +412,13 @@
         
         // Initialize on load
         window.addEventListener('load', init);
+        
+        // Re-snap on window resize to maintain proper positions
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(snapToZones, 100);
+        });
     </script>
 </body>
 </html>
