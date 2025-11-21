@@ -182,6 +182,7 @@
         <button onclick="rotate('ccw')" title="Roteer linksom">←</button>
         <button onclick="rotate('cw')" title="Roteer rechtsom">→</button>
         <button onclick="resetPositions()" title="Herstel posities">↺</button>
+        <button onclick="toggleFullscreen()" id="fullscreen-btn" title="Volledig scherm">⛶</button>
     </div>
 
     <div class="court-container">
@@ -397,6 +398,46 @@
         // Reset to initial positions
         function resetPositions() {
             snapToZones();
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            const btn = document.getElementById('fullscreen-btn');
+
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // Update fullscreen button icon
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+        function updateFullscreenButton() {
+            const btn = document.getElementById('fullscreen-btn');
+            if (document.fullscreenElement) {
+                btn.textContent = '⛶';
+                btn.title = 'Verlaat volledig scherm';
+            } else {
+                btn.textContent = '⛶';
+                btn.title = 'Volledig scherm';
+            }
         }
 
         // Check for rotation faults
