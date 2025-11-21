@@ -115,29 +115,6 @@
             0%, 100% { box-shadow: 0 0 10px 5px rgba(255, 0, 0, 0.5); }
             50% { box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.8); }
         }
-        
-        .status-bar {
-            background: white;
-            padding: 10px;
-            text-align: center;
-            border-top: 2px solid #ddd;
-        }
-        
-        .status-ok {
-            color: #27ae60;
-            font-weight: bold;
-        }
-        
-        .status-fault {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        
-        .fault-details {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
     </style>
 </head>
 <body>
@@ -168,10 +145,6 @@
                 <div class="zone-label">1</div>
             </div>
         </div>
-    </div>
-    
-    <div class="status-bar" id="statusBar">
-        <div class="status-ok">✓ Rotatie OK</div>
     </div>
     
     <script>
@@ -310,9 +283,6 @@
         
         // Check for rotation faults
         function checkRotationFaults() {
-            const statusBar = document.getElementById('statusBar');
-            let faults = [];
-            
             // Clear previous fault highlights
             document.querySelectorAll('.player-chip').forEach(chip => {
                 chip.classList.remove('fault');
@@ -331,57 +301,40 @@
             
             // Check front row (4-3-2) alignment
             if (positions[4] && positions[3] && positions[4].x > positions[3].x) {
-                faults.push('Zone 4 moet links van Zone 3 staan');
                 document.getElementById(`chip-${positions[4].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
             }
             
             if (positions[3] && positions[2] && positions[3].x > positions[2].x) {
-                faults.push('Zone 3 moet links van Zone 2 staan');
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[2].id}`).classList.add('fault');
             }
             
             // Check back row (5-6-1) alignment
             if (positions[5] && positions[6] && positions[5].x > positions[6].x) {
-                faults.push('Zone 5 moet links van Zone 6 staan');
                 document.getElementById(`chip-${positions[5].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
             }
             
             if (positions[6] && positions[1] && positions[6].x > positions[1].x) {
-                faults.push('Zone 6 moet links van Zone 1 staan');
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[1].id}`).classList.add('fault');
             }
             
             // Check front-back alignment
             if (positions[4] && positions[5] && positions[4].y > positions[5].y) {
-                faults.push('Zone 4 moet voor Zone 5 staan');
                 document.getElementById(`chip-${positions[4].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[5].id}`).classList.add('fault');
             }
             
             if (positions[3] && positions[6] && positions[3].y > positions[6].y) {
-                faults.push('Zone 3 moet voor Zone 6 staan');
                 document.getElementById(`chip-${positions[3].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[6].id}`).classList.add('fault');
             }
             
             if (positions[2] && positions[1] && positions[2].y > positions[1].y) {
-                faults.push('Zone 2 moet voor Zone 1 staan');
                 document.getElementById(`chip-${positions[2].id}`).classList.add('fault');
                 document.getElementById(`chip-${positions[1].id}`).classList.add('fault');
-            }
-            
-            // Update status bar
-            if (faults.length === 0) {
-                statusBar.innerHTML = '<div class="status-ok">✓ Rotatie OK</div>';
-            } else {
-                statusBar.innerHTML = `
-                    <div class="status-fault">⚠ Rotatiefout</div>
-                    <div class="fault-details">${faults.join(' | ')}</div>
-                `;
             }
         }
         

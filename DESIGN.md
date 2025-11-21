@@ -26,7 +26,6 @@ Digital whiteboard for visualizing volleyball rotations and checking rotation fa
 ### Fault Detection
 - Check 7 overlap rules (left-right per row, front-back per column)
 - Highlight fault chips with red glow animation
-- Status bar: "✓ Rotatie OK" (green) or "⚠ Rotatiefout + details" (red)
 
 ---
 
@@ -54,7 +53,7 @@ Use current Dutch labels from implementation:
 ## 📐 Layout
 
 ```
-[← ]  [→] [Reset]
+[← ]  [→] [↺]
 ┌─────────────────────────┐
 │  4    │   3   │    2    │
 │       │       │         │
@@ -62,10 +61,9 @@ Use current Dutch labels from implementation:
 │  5    │   6   │    1    │
 │       │       │         │
 └─────────────────────────┘
-[Status: ✓ Rotatie OK]
 ```
 
-Single column layout, full width court, controls above, status below.
+Single column layout, full width court, controls above.
 Use icons on buttons instead of text
 
 ---
