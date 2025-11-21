@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,69 +20,30 @@
             overflow: hidden;
         }
         
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        
         .controls {
             background: white;
-            padding: 10px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: center;
-            border-bottom: 2px solid #ddd;
-            flex-wrap: wrap;
-        }
-        
-        .control-group {
+            padding: 15px;
             display: flex;
             gap: 10px;
             align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid #ddd;
         }
         
         button {
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #3498db;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 20px;
             transition: background 0.3s;
+            min-width: 50px;
         }
         
         button:hover {
             background: #2980b9;
-        }
-        
-        .toggle-switch {
-            display: flex;
-            background: #ecf0f1;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .toggle-option {
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .toggle-option.active {
-            background: #3498db;
-            color: white;
-        }
-        
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
         }
         
         .court-container {
@@ -155,47 +116,6 @@
             50% { box-shadow: 0 0 20px 10px rgba(255, 0, 0, 0.8); }
         }
         
-        .sidebar {
-            width: 200px;
-            background: white;
-            border-left: 2px solid #ddd;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .sidebar h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-        }
-        
-        .player-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .player-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            cursor: move;
-        }
-        
-        .player-icon {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
         .status-bar {
             background: white;
             padding: 10px;
@@ -221,54 +141,32 @@
     </style>
 </head>
 <body>
-    <div class="header">VOLLEYBAL ROTATIEBORD</div>
-    
     <div class="controls">
-        <div class="control-group">
-            <button onclick="rotate('ccw')">← Roteer</button>
-            <button onclick="rotate('cw')">Roteer →</button>
-        </div>
-        
-        <div class="control-group">
-            <div class="toggle-switch">
-                <div class="toggle-option active" onclick="setMode('serving')">Serveren</div>
-                <div class="toggle-option" onclick="setMode('receiving')">Ontvangen</div>
-            </div>
-        </div>
-        
-        <div class="control-group">
-            <button onclick="snapToZones()">Naar Zones</button>
-            <button onclick="resetPositions()">Herstel</button>
-        </div>
+        <button onclick="rotate('ccw')" title="Roteer linksom">←</button>
+        <button onclick="rotate('cw')" title="Roteer rechtsom">→</button>
+        <button onclick="resetPositions()" title="Herstel posities">↺</button>
     </div>
     
-    <div class="main-container">
-        <div class="court-container">
-            <div class="court" id="court">
-                <div class="zone" data-zone="4">
-                    <div class="zone-label">4</div>
-                </div>
-                <div class="zone" data-zone="3">
-                    <div class="zone-label">3</div>
-                </div>
-                <div class="zone" data-zone="2">
-                    <div class="zone-label">2</div>
-                </div>
-                <div class="zone" data-zone="5">
-                    <div class="zone-label">5</div>
-                </div>
-                <div class="zone" data-zone="6">
-                    <div class="zone-label">6</div>
-                </div>
-                <div class="zone" data-zone="1">
-                    <div class="zone-label">1</div>
-                </div>
+    <div class="court-container">
+        <div class="court" id="court">
+            <div class="zone" data-zone="4">
+                <div class="zone-label">4</div>
             </div>
-        </div>
-        
-        <div class="sidebar">
-            <h3>Speler Opstelling</h3>
-            <div class="player-list" id="playerList"></div>
+            <div class="zone" data-zone="3">
+                <div class="zone-label">3</div>
+            </div>
+            <div class="zone" data-zone="2">
+                <div class="zone-label">2</div>
+            </div>
+            <div class="zone" data-zone="5">
+                <div class="zone-label">5</div>
+            </div>
+            <div class="zone" data-zone="6">
+                <div class="zone-label">6</div>
+            </div>
+            <div class="zone" data-zone="1">
+                <div class="zone-label">1</div>
+            </div>
         </div>
     </div>
     
@@ -279,22 +177,20 @@
     <script>
         // Player data with colors and positions
         const players = [
-            { id: 'SV', label: 'SV', color: '#e74c3c', zone: 1 },    // Spelverdeler (Setter)
-            { id: 'BP1', label: 'BP1', color: '#27ae60', zone: 2 },  // Buitenaanvaller 1 (Outside Hitter 1)
-            { id: 'MV1', label: 'MV1', color: '#f39c12', zone: 3 },  // Midvoor 1 (Middle Blocker 1)
-            { id: 'D', label: 'D', color: '#3498db', zone: 4 },      // Diagonaal (Opposite) - diagonal from setter
-            { id: 'BP2', label: 'BP2', color: '#9b59b6', zone: 5 },  // Buitenaanvaller 2 (Outside Hitter 2)
-            { id: 'MV2', label: 'MV2', color: '#34495e', zone: 6 }   // Midvoor 2 (Middle Blocker 2)
+            { id: 'SV', label: 'SV', color: '#3498db', zone: 1 },    // Spelverdeler (Setter) - blue
+            { id: 'PL1', label: 'PL1', color: '#27ae60', zone: 2 },  // Passer-loper 1 (Outside Hitter 1) - green
+            { id: 'M1', label: 'M1', color: '#e74c3c', zone: 3 },    // Middenblokeerder 1 (Middle Blocker 1) - red
+            { id: 'D', label: 'D', color: '#f39c12', zone: 4 },      // Diagonaal (Opposite) - yellow
+            { id: 'PL2', label: 'PL2', color: '#27ae60', zone: 5 },  // Passer-loper 2 (Outside Hitter 2) - green
+            { id: 'M2', label: 'M2', color: '#e74c3c', zone: 6 }     // Middenblokeerder 2 (Middle Blocker 2) - red
         ];
         
-        let currentMode = 'serving';
         let draggedPlayer = null;
         let playerPositions = {};
         
         // Initialize
         function init() {
             createPlayerChips();
-            updatePlayerList();
             snapToZones();
         }
         
@@ -326,25 +222,6 @@
             // Setup court for drop
             court.addEventListener('dragover', handleDragOver);
             court.addEventListener('drop', handleDrop);
-        }
-        
-        // Update player list in sidebar
-        function updatePlayerList() {
-            const list = document.getElementById('playerList');
-            list.innerHTML = '';
-            
-            // Sort players by zone
-            const sortedPlayers = [...players].sort((a, b) => a.zone - b.zone);
-            
-            sortedPlayers.forEach((player, index) => {
-                const item = document.createElement('div');
-                item.className = 'player-item';
-                item.innerHTML = `
-                    <div class="player-icon" style="background: ${player.color}">${player.label}</div>
-                    <span>Positie ${player.zone}: ${player.label}</span>
-                `;
-                list.appendChild(item);
-            });
         }
         
         // Drag and drop handlers
@@ -397,8 +274,7 @@
                     player.zone = player.zone === 6 ? 1 : player.zone + 1;
                 }
             });
-            updatePlayerList();
-            checkRotationFaults();
+            snapToZones();
         }
         
         // Snap players to their zones
@@ -429,10 +305,6 @@
         
         // Reset to initial positions
         function resetPositions() {
-            players.forEach((player, index) => {
-                player.zone = index + 1;
-            });
-            updatePlayerList();
             snapToZones();
         }
         
@@ -511,15 +383,6 @@
                     <div class="fault-details">${faults.join(' | ')}</div>
                 `;
             }
-        }
-        
-        // Set serving/receiving mode
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.toggle-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            event.target.classList.add('active');
         }
         
         // Initialize on load
