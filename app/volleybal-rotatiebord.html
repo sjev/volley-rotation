@@ -225,11 +225,11 @@
             border-radius: 50%;
         }
 
-        .toggle-switch input:checked + .toggle-slider {
+        .toggle-switch input:checked+.toggle-slider {
             background-color: #3498db;
         }
 
-        .toggle-switch input:checked + .toggle-slider:before {
+        .toggle-switch input:checked+.toggle-slider:before {
             transform: translateX(26px);
         }
 
@@ -284,10 +284,12 @@
             0% {
                 transform: scale(1);
             }
+
             50% {
                 transform: scale(1.15);
                 background: #27ae60;
             }
+
             100% {
                 transform: scale(1);
             }
@@ -304,14 +306,17 @@
         <div class="toggle-container">
             <span class="toggle-label">Foutcheck</span>
             <label class="toggle-switch">
-                <input type="checkbox" id="rotation-check" checked onchange="toggleRotationCheck()">
+                <input type="checkbox" id="rotation-check" onchange="toggleRotationCheck()">
                 <span class="toggle-slider"></span>
             </label>
         </div>
         <div class="preset-container">
-            <button class="preset-btn" id="preset-1" data-slot="0" title="Klik om te laden, houd vast om op te slaan">1</button>
-            <button class="preset-btn" id="preset-2" data-slot="1" title="Klik om te laden, houd vast om op te slaan">2</button>
-            <button class="preset-btn" id="preset-3" data-slot="2" title="Klik om te laden, houd vast om op te slaan">3</button>
+            <button class="preset-btn" id="preset-1" data-slot="0"
+                title="Klik om te laden, houd vast om op te slaan">1</button>
+            <button class="preset-btn" id="preset-2" data-slot="1"
+                title="Klik om te laden, houd vast om op te slaan">2</button>
+            <button class="preset-btn" id="preset-3" data-slot="2"
+                title="Klik om te laden, houd vast om op te slaan">3</button>
         </div>
     </div>
 
