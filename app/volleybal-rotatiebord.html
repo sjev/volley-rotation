@@ -232,6 +232,66 @@
         .toggle-switch input:checked + .toggle-slider:before {
             transform: translateX(26px);
         }
+
+        /* Preset buttons */
+        .preset-container {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        @media (orientation: portrait) {
+            .preset-container {
+                flex-direction: row;
+            }
+        }
+
+        .preset-btn {
+            position: relative;
+            background: #8e44ad;
+            min-width: 50px;
+            min-height: 50px;
+            font-size: 20px;
+            padding: 12px 20px;
+        }
+
+        .preset-btn:hover {
+            background: #732d91;
+        }
+
+        .preset-btn::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #27ae60;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .preset-btn.filled::after {
+            opacity: 1;
+        }
+
+        .preset-btn.saving {
+            animation: save-pulse 0.5s ease-out;
+        }
+
+        @keyframes save-pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+                background: #27ae60;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
@@ -247,6 +307,11 @@
                 <input type="checkbox" id="rotation-check" checked onchange="toggleRotationCheck()">
                 <span class="toggle-slider"></span>
             </label>
+        </div>
+        <div class="preset-container">
+            <button class="preset-btn" id="preset-1" data-slot="0" title="Klik om te laden, houd vast om op te slaan">1</button>
+            <button class="preset-btn" id="preset-2" data-slot="1" title="Klik om te laden, houd vast om op te slaan">2</button>
+            <button class="preset-btn" id="preset-3" data-slot="2" title="Klik om te laden, houd vast om op te slaan">3</button>
         </div>
     </div>
 
@@ -287,11 +352,15 @@
         let draggedPlayer = null;
         let playerPositions = {};
         let rotationCheckEnabled = true;
+        let presets = [null, null, null];
+        let pressTimer = null;
 
         // Initialize
         function init() {
             createPlayerChips();
             snapToZones();
+            loadPresets();
+            initPresetButtons();
         }
 
         // Create player chips on court
@@ -510,6 +579,129 @@
         function toggleRotationCheck() {
             rotationCheckEnabled = document.getElementById('rotation-check').checked;
             checkRotationFaults();
+        }
+
+        // Preset functions
+        function loadPresets() {
+            const stored = localStorage.getItem('volleyball-presets');
+            if (stored) {
+                presets = JSON.parse(stored);
+                updatePresetButtons();
+            }
+        }
+
+        function savePresets() {
+            localStorage.setItem('volleyball-presets', JSON.stringify(presets));
+        }
+
+        function savePreset(slot) {
+            const state = {
+                zones: {},
+                positions: {}
+            };
+
+            players.forEach(player => {
+                state.zones[player.id] = player.zone;
+                const chip = document.getElementById(`chip-${player.id}`);
+                state.positions[player.id] = {
+                    x: parseFloat(chip.style.left),
+                    y: parseFloat(chip.style.top)
+                };
+            });
+
+            presets[slot] = state;
+            savePresets();
+            updatePresetButtons();
+
+            // Visual feedback
+            const btn = document.querySelector(`[data-slot="${slot}"]`);
+            btn.classList.add('saving');
+            setTimeout(() => btn.classList.remove('saving'), 500);
+        }
+
+        function loadPreset(slot) {
+            const preset = presets[slot];
+            if (!preset) return;
+
+            // Restore zones and positions
+            players.forEach(player => {
+                player.zone = preset.zones[player.id];
+                const chip = document.getElementById(`chip-${player.id}`);
+                chip.style.left = preset.positions[player.id].x + 'px';
+                chip.style.top = preset.positions[player.id].y + 'px';
+                playerPositions[player.id] = { ...preset.positions[player.id] };
+            });
+
+            checkRotationFaults();
+        }
+
+        function updatePresetButtons() {
+            presets.forEach((preset, index) => {
+                const btn = document.querySelector(`[data-slot="${index}"]`);
+                if (preset) {
+                    btn.classList.add('filled');
+                } else {
+                    btn.classList.remove('filled');
+                }
+            });
+        }
+
+        function initPresetButtons() {
+            const buttons = document.querySelectorAll('.preset-btn');
+
+            buttons.forEach(btn => {
+                const slot = parseInt(btn.dataset.slot);
+
+                // Mouse events
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    pressTimer = setTimeout(() => {
+                        savePreset(slot);
+                        pressTimer = null;
+                    }, 800);
+                });
+
+                btn.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                        loadPreset(slot);
+                    }
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                    }
+                });
+
+                // Touch events
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    pressTimer = setTimeout(() => {
+                        savePreset(slot);
+                        pressTimer = null;
+                    }, 800);
+                });
+
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                        loadPreset(slot);
+                    }
+                });
+
+                btn.addEventListener('touchcancel', () => {
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                    }
+                });
+            });
         }
 
         // Check for rotation faults
